@@ -1,0 +1,2990 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banana Clicker 🍌</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap');
+
+:root {
+  --yellow:#ffe34d;
+  --green:#b5ed45;
+  --dark:#11130f;
+  --panel:#1d211a;
+  --text:#f5f5e9;
+}
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  background:var(--dark);
+  color:var(--text);
+  font-family:Manrope,Arial,sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  transition:background .3s;
+}
+
+body.inverted {
+  filter:hue-rotate(100deg);
+}
+
+body.shaking {
+  animation:shake .12s infinite;
+}
+
+@keyframes shake {
+  0%{transform:translate(0,0)}
+  25%{transform:translate(2px,-2px)}
+  50%{transform:translate(-2px,2px)}
+  75%{transform:translate(2px,1px)}
+  100%{transform:translate(0,0)}
+}
+
+body.flash {
+  animation:flash .35s;
+}
+
+@keyframes flash {
+  0%,100%{filter:none}
+  50%{filter:brightness(1.7) hue-rotate(90deg)}
+}
+
+body.screamer-shake {
+  animation:screamerShake 0.06s infinite;
+}
+
+@keyframes screamerShake {
+  0% { transform: translate(0,0) rotate(0deg); }
+  20% { transform: translate(-18px, 12px) rotate(-4deg); }
+  40% { transform: translate(20px, -14px) rotate(5deg); }
+  60% { transform: translate(-14px, 16px) rotate(-3deg); }
+  80% { transform: translate(16px, -10px) rotate(4deg); }
+  100% { transform: translate(0,0) rotate(0deg); }
+}
+
+.screamer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: none;
+  overflow: hidden;
+}
+
+.screamer-overlay.active {
+  display: flex;
+  animation: screamerBgFlash 0.1s infinite alternate;
+}
+
+@keyframes screamerBgFlash {
+  0% { background: #000; }
+  50% { background: #1a0000; }
+  100% { background: #300000; }
+}
+
+.screamer-face {
+  font-size: min(55vw, 360px);
+  line-height: 1;
+  animation: screamerPulse 0.08s infinite alternate;
+  filter: contrast(1.8) saturate(2.2) brightness(1.15);
+  user-select: none;
+  text-shadow: 0 0 40px #ff0000, 0 0 80px #ff0000, 0 0 120px #990000;
+}
+
+@keyframes screamerPulse {
+  from { transform: scale(0.92) rotate(-8deg); filter: contrast(1.8) saturate(2.2) brightness(0.9); }
+  to { transform: scale(1.25) rotate(9deg); filter: contrast(2.2) saturate(2.5) brightness(1.4); }
+}
+
+.screamer-text {
+  color: #ff0000;
+  font-size: clamp(26px, 7vw, 56px);
+  font-weight: 800;
+  text-shadow: 0 0 15px #ff0000, 0 0 40px #ff0000, 0 0 80px #ff0000;
+  margin-top: 8px;
+  letter-spacing: 6px;
+  animation: screamerText 0.1s infinite alternate;
+  text-align: center;
+  max-width: 95vw;
+}
+
+@keyframes screamerText {
+  from { opacity: 0.6; transform: scale(0.95) translateY(0); }
+  to { opacity: 1; transform: scale(1.12) translateY(-4px); }
+}
+
+.screamer-sub {
+  color: #ff4444;
+  font-size: clamp(14px, 3.5vw, 22px);
+  margin-top: 12px;
+  opacity: 0.85;
+  letter-spacing: 3px;
+  animation: screamerText 0.13s infinite alternate-reverse;
+}
+
+header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:20px 5%;
+  border-bottom:1px solid #34382c;
+  gap:15px;
+}
+
+.logo {
+  font-size:23px;
+  font-weight:800;
+  color:var(--yellow);
+}
+
+.logo span {color:var(--green)}
+
+.header-info {
+  color:#aaa;
+  font-size:13px;
+}
+
+.layout {
+  display:grid;
+  grid-template-columns:220px 1fr;
+  min-height:calc(100vh - 75px);
+}
+
+nav {
+  border-right:1px solid #34382c;
+  padding:22px 15px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+
+.nav-btn {
+  border:0;
+  background:transparent;
+  color:#aaa;
+  padding:13px;
+  text-align:left;
+  border-radius:12px;
+  cursor:pointer;
+  font:inherit;
+  font-weight:700;
+  transition:.2s;
+}
+
+.nav-btn:hover,.nav-btn.active {
+  background:#303629;
+  color:var(--green);
+}
+
+main {
+  padding:30px;
+  max-width:1100px;
+  width:100%;
+  margin:auto;
+}
+
+.page {display:none}
+.page.active {display:block}
+
+h1 {
+  font-size:30px;
+  margin-top:0;
+}
+
+.subtitle {color:#999;margin-top:-12px}
+
+.panel {
+  background:var(--panel);
+  border:1px solid #34382c;
+  padding:22px;
+  border-radius:19px;
+  margin-bottom:18px;
+}
+
+.clicker {
+  text-align:center;
+  padding:35px 15px;
+}
+
+.score {
+  font-size:43px;
+  font-weight:800;
+  color:var(--yellow);
+}
+
+.banana {
+  display:inline-block;
+  font-size:145px;
+  border:0;
+  background:none;
+  cursor:pointer;
+  user-select:none;
+  transition:transform .15s;
+  filter:drop-shadow(0 10px 20px #0008);
+}
+
+.banana:hover {transform:scale(1.08) rotate(-5deg)}
+.banana:active {transform:scale(.88) rotate(8deg)}
+
+.banana.wobble {
+  animation:wobble .5s infinite alternate;
+}
+
+@keyframes wobble {
+  from{transform:rotate(-15deg) scale(.9)}
+  to{transform:rotate(15deg) scale(1.15)}
+}
+
+.banana.dodging {
+  position: relative;
+  z-index: 5;
+  transition: transform 0.18s ease-out;
+  animation: none !important;
+}
+
+@keyframes bananaFlee {
+  0% { transform: translate(0,0) rotate(0) scale(1); }
+  20% { transform: translate(80px, -40px) rotate(25deg) scale(0.85); }
+  40% { transform: translate(-90px, 30px) rotate(-30deg) scale(1.1); }
+  60% { transform: translate(60px, 50px) rotate(15deg) scale(0.9); }
+  80% { transform: translate(-50px, -60px) rotate(-20deg) scale(1.05); }
+  100% { transform: translate(0,0) rotate(0) scale(1); }
+}
+
+.banana.fleeing {
+  animation: bananaFlee 1.4s ease-in-out infinite !important;
+}
+
+button {
+  font-family:inherit;
+}
+
+.action {
+  background:var(--green);
+  color:#17200e;
+  border:0;
+  padding:12px 19px;
+  border-radius:11px;
+  cursor:pointer;
+  font-weight:800;
+  transition:.15s;
+}
+
+.action:hover {filter:brightness(1.1);transform:translateY(-2px)}
+.action:disabled {opacity:.4;cursor:not-allowed;transform:none}
+
+.secondary {
+  background:#303629;
+  color:white;
+  border:1px solid #414837;
+  padding:10px 15px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.stats {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:20px;
+}
+
+.stat {
+  background:#292e24;
+  padding:16px;
+  border-radius:13px;
+}
+
+.stat small {color:#999}
+.stat strong {display:block;font-size:23px;margin-top:5px}
+
+.upgrade {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  border-bottom:1px solid #34382c;
+  padding:15px 0;
+}
+
+.upgrade:last-child {border:0}
+.upgrade p {margin:5px 0;color:#999;font-size:13px}
+
+input[type=range] {width:100%;accent-color:var(--green)}
+
+.setting {
+  margin:20px 0;
+}
+
+.setting label {
+  display:block;
+  font-weight:700;
+  margin-bottom:9px;
+}
+
+.setting small {color:#999}
+
+.toggle {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  padding:13px 0;
+  border-bottom:1px solid #34382c;
+}
+
+input[type=checkbox] {
+  width:20px;
+  height:20px;
+  accent-color:var(--green);
+}
+
+.notice {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#303629;
+  padding:15px 20px;
+  border:1px solid #69744e;
+  border-radius:13px;
+  z-index:20;
+  animation:noticeIn .3s;
+  max-width:300px;
+  box-shadow:0 10px 30px #0008;
+}
+
+@keyframes noticeIn {
+  from{transform:translateY(30px);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
+
+.fake-error {
+  position:fixed;
+  z-index:30;
+  width:min(350px,90vw);
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  background:#20231d;
+  border:1px solid #e4c84c;
+  border-radius:15px;
+  padding:22px;
+  box-shadow:0 20px 80px #000b;
+}
+
+.fake-error h3 {color:var(--yellow)}
+
+.ad-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:#080808;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.ad-overlay.active {display:flex}
+
+.ad-content {
+  text-align:center;
+  max-width:650px;
+  width:100%;
+  animation:adAppear .5s;
+}
+
+@keyframes adAppear {
+  from{transform:scale(.6) rotate(-5deg);opacity:0}
+  to{transform:scale(1) rotate(0);opacity:1}
+}
+
+.ad-box {
+  background:linear-gradient(135deg,#ffeb49,#ff8d28);
+  color:#241800;
+  border-radius:25px;
+  padding:45px 25px;
+  box-shadow:0 0 80px #ffbb2770;
+}
+
+.ad-box h2 {
+  font-size:clamp(30px,6vw,55px);
+  margin:10px 0;
+}
+
+.ad-emoji {font-size:85px}
+
+.ad-timer {
+  font-size:22px;
+  margin:20px;
+  font-weight:800;
+}
+
+.ad-close {
+  position:absolute;
+  left:12px;
+  top:12px;
+  width:22px;
+  height:22px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #777;
+  border-radius:50%;
+  background:#252525;
+  color:#fff;
+  font-size:15px;
+  line-height:1;
+  cursor:pointer;
+  z-index:105;
+  opacity:.78;
+  transition:left .22s ease, top .22s ease, opacity .15s ease;
+}
+.ad-close:hover {opacity:1}
+
+.ad-label {
+  color:#888;
+  font-size:12px;
+  margin-top:15px;
+}
+
+.achievement {
+  display:flex;
+  gap:15px;
+  align-items:center;
+  padding:15px;
+  border-bottom:1px solid #34382c;
+}
+
+.achievement .emoji {font-size:30px}
+.locked {opacity:.35}
+
+.chaos-indicator {
+  display:inline-block;
+  color:var(--green);
+  background:#303629;
+  padding:7px 12px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:800;
+}
+
+/* ===== v6: микрофон и шкала громкости ===== */
+.mic-meter-wrap {
+  display:none;
+  align-items:center;
+  gap:6px;
+  background:#303629;
+  padding:5px 9px;
+  border-radius:20px;
+  border:1px solid #3c4630;
+}
+
+.mic-bar {
+  width:84px;
+  height:8px;
+  border-radius:5px;
+  background:#151810;
+  overflow:hidden;
+  border:1px solid #3c4630;
+  flex:0 0 auto;
+}
+
+#micMeter,
+#startMicMeter {
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#b5ed45,#ffe34d,#ff6464);
+  transition:width .08s linear;
+}
+
+.start-mic-meter {
+  display:none;
+  align-items:center;
+  gap:9px;
+  margin-top:10px;
+}
+
+.start-mic-meter .mic-bar {
+  flex:1;
+  width:auto;
+  height:10px;
+}
+
+/* ===== v6: эволюция банана ===== */
+.banana.almost-sole {
+  filter:grayscale(1) brightness(.5) drop-shadow(0 0 10px #000);
+}
+
+.banana.sole {
+  filter:brightness(0) invert(1) drop-shadow(0 0 22px #fff) drop-shadow(0 0 60px #ffffff88);
+  transform:rotate(-12deg);
+}
+
+.banana.sole:hover {
+  filter:brightness(0) invert(1) drop-shadow(0 0 30px #fff) drop-shadow(0 0 80px #ffffffaa);
+  transform:rotate(-5deg) scale(1.06);
+}
+
+.banana.sole:active {
+  transform:rotate(4deg) scale(.9);
+}
+
+/* ===== v6: стартовое меню ===== */
+body.menu-open { overflow:hidden; }
+
+.start-overlay,
+.results-overlay,
+.exit-overlay {
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:20px;
+  overflow-y:auto;
+  background:radial-gradient(circle at 50% 0%, #26301a 0%, #0c0e0a 68%);
+  z-index:9000;
+}
+
+/* На низких экранах карточка не обрезается сверху, а прокручивается */
+.start-overlay > .start-card,
+.results-overlay > .results-card {
+  margin:auto 0;
+}
+
+.results-overlay {
+  z-index:9500;
+  background:rgba(5,6,4,.93);
+  backdrop-filter:blur(6px);
+}
+
+.exit-overlay {
+  z-index:9600;
+  background:#080a06;
+}
+
+.start-card,
+.results-card {
+  width:min(560px,100%);
+  background:#171b13;
+  border:1px solid #3c4630;
+  border-radius:24px;
+  padding:28px;
+  box-shadow:0 30px 90px #000c;
+  animation:startIn .35s ease;
+}
+
+@keyframes startIn {
+  from{opacity:0;transform:translateY(18px) scale(.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+.start-logo {
+  font-size:clamp(26px,6vw,36px);
+  font-weight:800;
+  color:var(--yellow);
+  text-align:center;
+  letter-spacing:.5px;
+}
+
+.start-logo span {color:var(--green)}
+
+.start-tag {
+  text-align:center;
+  letter-spacing:4px;
+  font-size:10px;
+  color:#8a9678;
+  margin-top:6px;
+  font-weight:800;
+}
+
+.start-desc {
+  color:#aab09d;
+  font-size:14px;
+  line-height:1.55;
+  text-align:center;
+  margin:16px 0 22px;
+}
+
+.start-field {margin:16px 0;}
+
+.start-field > label {
+  display:block;
+  font-weight:800;
+  margin-bottom:8px;
+  font-size:14px;
+}
+
+.start-field small {
+  display:block;
+  color:#7f8a72;
+  font-size:11.5px;
+  line-height:1.45;
+  margin-top:7px;
+}
+
+.start-select {
+  width:100%;
+  padding:12px;
+  border-radius:11px;
+  background:#242a1d;
+  color:var(--text);
+  border:1px solid #3c4630;
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.start-mic {
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  background:#20261a;
+  border:1px solid #343c2a;
+  border-radius:13px;
+  padding:14px;
+  margin-top:20px;
+  cursor:pointer;
+}
+
+.start-mic input {margin-top:1px;flex:0 0 auto;}
+
+.start-mic b {display:block;font-size:14px;}
+
+.start-mic small {
+  display:block;
+  color:#8a9678;
+  font-size:11.5px;
+  line-height:1.45;
+  margin-top:4px;
+}
+
+.mic-status {
+  min-height:17px;
+  margin-top:8px;
+  font-size:12px;
+  line-height:1.45;
+  color:#8a9678;
+}
+
+.start-btn {
+  width:100%;
+  padding:16px;
+  font-size:17px;
+  margin-top:12px;
+  letter-spacing:.5px;
+}
+
+.start-foot {
+  margin-top:18px;
+  text-align:center;
+  font-size:11px;
+  color:#6f7a62;
+  letter-spacing:.4px;
+  line-height:1.5;
+}
+
+.start-foot b {color:#b9c4a9;}
+
+/* ===== v6: окно результатов ===== */
+.results-card {text-align:center;}
+
+.results-card h2 {
+  margin:0;
+  font-size:clamp(24px,5vw,32px);
+  color:var(--yellow);
+}
+
+.results-sub {
+  color:#8a9678;
+  font-size:13px;
+  margin:8px 0 0;
+}
+
+.results-grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin:22px 0 16px;
+  text-align:left;
+}
+
+.result-stat {
+  background:#242a1d;
+  border:1px solid #343c2a;
+  border-radius:13px;
+  padding:14px;
+}
+
+.result-stat small {color:#8a9678;font-size:11.5px;}
+
+.result-stat strong {
+  display:block;
+  font-size:22px;
+  margin-top:4px;
+  color:var(--yellow);
+}
+
+.results-verdict {
+  background:#20261a;
+  border-left:3px solid var(--green);
+  padding:13px 15px;
+  border-radius:10px;
+  color:#c8cfba;
+  font-size:14px;
+  line-height:1.5;
+  text-align:left;
+  margin:0 0 16px;
+}
+
+.results-note {
+  color:#7f8a72;
+  font-size:11.5px;
+  line-height:1.5;
+  margin:0 0 16px;
+}
+
+.results-actions {
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+
+.results-actions .action,
+.results-actions .secondary {
+  width:100%;
+  padding:13px;
+}
+
+.exit-title {
+  font-size:clamp(26px,6vw,38px);
+  color:var(--yellow);
+  text-align:center;
+  margin:0;
+}
+
+.exit-text {
+  color:#8a9678;
+  text-align:center;
+  font-size:14px;
+  line-height:1.6;
+  margin:14px 0 22px;
+}
+
+@media(max-width:700px) {
+  .layout {grid-template-columns:1fr}
+  nav {
+    flex-direction:row;
+    overflow-x:auto;
+    border-right:0;
+    border-bottom:1px solid #34382c;
+  }
+  .nav-btn {white-space:nowrap}
+  main {padding:18px}
+  .stats {grid-template-columns:1fr}
+  header {padding:15px}
+  .start-card,.results-card {padding:22px 18px}
+  .results-grid {grid-template-columns:1fr 1fr}
+}
+
+@media(max-width:420px) {
+  .results-grid {grid-template-columns:1fr}
+  .mic-bar {width:48px}
+}
+</style>
+</head>
+
+<body class="menu-open">
+
+<!-- ===== v6: стартовое меню ===== -->
+<div class="start-overlay" id="startMenu">
+  <div class="start-card">
+    <div class="start-logo">BANANA <span>CLICKER</span> 🍌</div>
+    <div class="start-tag">ТЕСТ ПРОЧНОСТИ ПСИХИКИ</div>
+    <p class="start-desc">
+      Снаружи это банановый кликер. Внутри — проверка нервов.<br>
+      Дойди до 100 уровня. Большинство сдаются на первой рекламе.
+    </p>
+
+    <div class="start-field">
+      <label for="startDiff">Стартовая сложность</label>
+      <select class="start-select" id="startDiff">
+        <option value="-1" id="continueOption">Продолжить сохранённую игру</option>
+        <option value="0">Спокойно — с 0 уровня</option>
+        <option value="15">Разминка — с 15 уровня</option>
+        <option value="30">Уже бесит — с 30 уровня</option>
+        <option value="45">Хардкор — с 45 уровня</option>
+      </select>
+      <small id="startDiffHint">Чем выше старт, тем быстрее начнётся хаос.</small>
+    </div>
+
+    <div class="start-field">
+      <label for="startChaos">Сила раздражения: <span id="startChaosValue">35%</span></label>
+      <input type="range" min="0" max="100" value="35" id="startChaos">
+      <small>0% — почти спокойно. 100% — полный хаос. Настройки можно менять и потом.</small>
+    </div>
+
+    <label class="start-mic" for="startMic">
+      <input type="checkbox" id="startMic">
+      <span>
+        <b>🎤 Микрофон: тест прочности психики</b>
+        <small>Распознаются слова и человеческий голос. Стук по столу, хлопки и скрип не считаются голосом. Шум во время рекламы/скримера снижает психику, тишина — восстанавливает.</small>
+      </span>
+    </label>
+    <div class="mic-status" id="micStatus">Микрофон выключен. Тест психики не будет измеряться.</div>
+    <small style="color:#6f7a62;font-size:11px;display:block;margin-top:4px;line-height:1.45">
+      Если шкала не двигается — проверь, не выключен ли микрофон в Windows и разрешён ли доступ в браузере.
+    </small>
+    <div class="start-mic-meter" id="startMicMeterWrap">
+      <span style="font-size:12px">🎤</span>
+      <span class="mic-bar"><span id="startMicMeter" style="display:block"></span></span>
+      <span id="startMicLevelText" style="font-size:11px;color:#8a9678;min-width:32px;text-align:right">0%</span>
+    </div>
+    <button class="secondary" id="micTestBtn" style="margin-top:9px;font-size:12px;padding:8px 12px">🎤 Проверить микрофон</button>
+
+    <button class="action start-btn" id="startBtn">НАЧАТЬ ТЕСТ</button>
+
+    <div class="start-foot">
+      Прогресс сохраняется автоматически.<br>
+      <b>Если дойдёшь до 100 уровня — тебя ждёт подошва.</b>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">BANANA <span>CLICKER</span> 🍌</div>
+  <div class="header-info" style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:200px">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+      <span class="chaos-indicator" id="diffStatus" style="color:#ff9f43">УР. 0 / 100</span>
+      <span class="chaos-indicator" id="chaosStatus">ХАОС: 0%</span>
+      <span class="chaos-indicator" id="micState" style="display:none">🎤 ВЫКЛ</span>
+      <span class="chaos-indicator" id="voiceState" style="display:none">🔇 ТИХО</span>
+      <span class="chaos-indicator" id="psycheStatus" style="display:none">🧠 100%</span>
+      <span class="mic-meter-wrap" id="micMeterWrap" title="Громкость микрофона">
+        <span style="font-size:11px">🎤</span>
+        <span class="mic-bar"><span id="micMeter" style="display:block"></span></span>
+        <span id="micLevelText" style="font-size:10px;color:#8a9678;min-width:26px;text-align:right">0%</span>
+      </span>
+    </div>
+    <div style="width:min(260px,70vw)">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:3px">
+        <span id="goalLabel">Тест нервов</span>
+        <span id="percentileLabelTop">100% выжили</span>
+      </div>
+      <div style="background:#292e24;border-radius:8px;height:10px;overflow:hidden;border:1px solid #34382c">
+        <div id="levelBar" style="height:100%;width:0%;background:linear-gradient(90deg,#b5ed45,#ffe34d,#ff9f43,#ff6464);transition:width .5s ease"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+<nav id="navigation">
+  <button class="nav-btn active" data-page="clicker">🍌 Кликер</button>
+  <button class="nav-btn" data-page="upgrades">⚡ Улучшения</button>
+  <button class="nav-btn" data-page="statistics">📊 Статистика</button>
+  <button class="nav-btn" data-page="settings">⚙️ Настройки</button>
+  <button class="nav-btn" data-page="achievements">🏆 Достижения</button>
+</nav>
+
+<main>
+<section class="page active" id="clicker">
+  <h1>Тест нервов</h1>
+  <p class="subtitle" id="mainSubtitle">Дойди до 100 уровня. Большинство сдаются раньше.</p>
+
+  <div class="panel" id="missionPanel" style="margin-bottom:14px;border-color:#4a5a2a">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
+      <div>
+        <b id="missionTitle">🎯 Цель: уровень 100</b>
+        <div style="color:#999;font-size:13px;margin-top:4px" id="missionDesc">Сейчас спокойно. Хаос включится постепенно.</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:22px;font-weight:800;color:var(--yellow)" id="levelBig">0</div>
+        <div style="font-size:12px;color:#888">/ 100</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel clicker">
+    <div class="score" id="score">0</div>
+    <div style="color:#999">бананов</div>
+    <button class="banana" id="banana">🍌</button>
+    <div>
+      <button class="action" id="clickButton">НАЖАТЬ НА БАНАН</button>
+    </div>
+    <p style="color:#999;font-size:13px" id="clickHint">Кликай. Пока можно спокойно.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><small>Всего кликов</small><strong id="clicks">0</strong></div>
+    <div class="stat"><small>За клик</small><strong id="perClick">1</strong></div>
+    <div class="stat"><small>В секунду</small><strong id="perSecond">0</strong></div>
+  </div>
+
+  <div class="panel" id="adminPanel" style="display:none;margin-top:14px;border-color:#ffe34d">
+    <h3 style="margin:0 0 10px;color:var(--yellow)">👑 РЕЖИМ АДМИНА</h3>
+    <p style="color:#999;font-size:13px;margin-top:0">Ты дошёл до 100. Теперь можешь издеваться над игрой сам.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button class="action" id="adminChaosOff">Выключить весь хаос</button>
+      <button class="secondary" id="adminMoney">+1 000 000 бананов</button>
+      <button class="secondary" id="adminScreamer">Запустить скример</button>
+      <button class="secondary" id="adminAd">Запустить рекламу</button>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="upgrades">
+  <h1>Улучшения</h1>
+  <p class="subtitle">Покупай улучшения за бананы.</p>
+  <div class="panel" id="upgradeList"></div>
+</section>
+
+<section class="page" id="statistics">
+  <h1>Статистика</h1>
+  <div class="panel">
+    <div class="stats">
+      <div class="stat"><small>Всего заработано</small><strong id="totalEarned">0</strong></div>
+      <div class="stat"><small>Рекламных показов</small><strong id="adCount">0</strong></div>
+      <div class="stat"><small>Сила раздражения</small><strong id="statChaos">0%</strong></div>
+    </div>
+    <div class="stats" style="margin-top:14px">
+      <div class="stat"><small>Уровень сложности</small><strong id="statDiffLvl">0</strong></div>
+      <div class="stat"><small>Название</small><strong id="statDiffName" style="font-size:16px">Детский сад</strong></div>
+      <div class="stat"><small>Время в игре</small><strong id="statPlayTime">0с</strong></div>
+    </div>
+
+    <div class="stats" style="margin-top:14px">
+      <div class="stat"><small>Прочность психики</small><strong id="statPsyche">—</strong></div>
+      <div class="stat"><small>Голосовых срывов</small><strong id="statMicSpikes">0</strong></div>
+      <div class="stat"><small>Распознано слов</small><strong id="statWords">0</strong></div>
+    </div>
+
+    <div class="stats" style="margin-top:14px">
+      <div class="stat"><small>Последнее слово</small><strong id="statLastWord" style="font-size:16px">—</strong></div>
+      <div class="stat"><small>Режим</small><strong id="statMode" style="font-size:16px">Тест</strong></div>
+    </div>
+
+    <div style="margin-top:22px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;color:#aaa">
+        <span>Сколько игроков дошли досюда</span>
+        <span id="percentileLabel">100% игроков</span>
+      </div>
+      <div style="background:#292e24;border-radius:12px;height:22px;overflow:hidden;border:1px solid #34382c">
+        <div id="percentileBar" style="height:100%;width:100%;background:linear-gradient(90deg,#b5ed45,#ffe34d,#ff9f43,#ff6464);border-radius:12px;transition:width .6s ease"></div>
+      </div>
+      <small style="color:#777;display:block;margin-top:8px">Чем дольше играешь — тем меньше людей «выжило» рядом с тобой.</small>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="settings">
+  <h1>Настройки хаоса</h1>
+  <p class="subtitle">Самое интересное находится здесь.</p>
+
+  <div class="panel">
+    <div class="setting">
+      <label>Сила раздражения: <span id="chaosValue">50%</span></label>
+      <input type="range" min="0" max="100" value="50" id="chaosSlider">
+      <small>Чем выше значение, тем чаще происходят случайные события.</small>
+    </div>
+
+    <div class="toggle">
+      <div><b>Реклама</b><br><small>Случайные рекламные заставки</small></div>
+      <input type="checkbox" id="adsToggle" checked>
+    </div>
+
+    <div class="toggle">
+      <div><b>Перевёрнутый интерфейс</b><br><small>Перемещение и изменение элементов</small></div>
+      <input type="checkbox" id="invertToggle" checked>
+    </div>
+
+    <div class="toggle">
+      <div><b>Задержки реакции</b><br><small>Случайные задержки кнопок</small></div>
+      <input type="checkbox" id="lagToggle" checked>
+    </div>
+
+    <div class="toggle">
+      <div><b>Визуальные эффекты</b><br><small>Тряска, цвета и анимации</small></div>
+      <input type="checkbox" id="visualToggle" checked>
+    </div>
+
+    <div class="toggle">
+      <div><b>Безумный режим</b><br><small>Все эффекты на максимуме</small></div>
+      <input type="checkbox" id="madToggle">
+    </div>
+
+    <button class="secondary" id="resetButton" style="margin-top:20px">Сбросить прогресс</button>
+  </div>
+</section>
+
+<section class="page" id="achievements">
+  <h1>Достижения</h1>
+  <p class="subtitle">23 тупых достижения. Зачем? А вот так.</p>
+  <div class="panel" id="achievementList"></div>
+</section>
+</main>
+</div>
+
+<div class="ad-overlay" id="adOverlay">
+  <button class="ad-close" id="adClose" type="button" aria-label="Закрыть рекламу" title="Закрыть">×</button>
+  <div class="ad-content">
+    <div class="ad-box" id="adBox">
+      <div class="ad-emoji" id="adEmoji">🍌</div>
+      <h2 id="adTitle">КУПИ БАНАН!</h2>
+      <p id="adDescription">Самый лучший банан во всей галактике!</p>
+    </div>
+    <div class="ad-timer" id="adTimer">Закрытие через 15 секунд</div>
+    <div class="ad-label">Рекламная пауза · Banana Advertising Corporation</div>
+  </div>
+</div>
+
+<div id="floating"></div>
+
+<div class="screamer-overlay" id="screamerOverlay">
+  <div class="screamer-face" id="screamerFace">💀</div>
+  <div class="screamer-text" id="screamerText">ОН УЖЕ ЗДЕСЬ</div>
+  <div class="screamer-sub" id="screamerSub">НЕ ОТВОРАЧИВАЙСЯ</div>
+</div>
+
+<!-- ===== v6: результаты 10-й минуты ===== -->
+<div class="results-overlay" id="resultsModal" style="display:none">
+  <div class="results-card">
+    <h2>10 МИНУТ ВЫДЕРЖАНО</h2>
+    <p class="results-sub">Ты дошёл до контрольной точки. Это уже больше, чем делают многие.</p>
+
+    <div class="results-grid">
+      <div class="result-stat"><small>Уровень</small><strong id="resLevel">0 / 100</strong></div>
+      <div class="result-stat"><small>Прочность психики</small><strong id="resPsyche">—</strong></div>
+      <div class="result-stat"><small>Кликов</small><strong id="resClicks">0</strong></div>
+      <div class="result-stat"><small>Реклам просмотрено</small><strong id="resAds">0</strong></div>
+      <div class="result-stat"><small>Слов распознано</small><strong id="resWords">0</strong></div>
+      <div class="result-stat"><small>Голосовых срывов</small><strong id="resVoice">0</strong></div>
+    </div>
+
+    <p class="results-verdict" id="resVerdict"></p>
+    <p class="results-note">Дальше — бесконечный режим: остановки больше не будет. Или начни заново с чистого листа.</p>
+
+    <div class="results-actions">
+      <button class="action" id="resContinue">ПРОДОЛЖИТЬ — БЕСКОНЕЧНЫЙ РЕЖИМ</button>
+      <button class="secondary" id="resRestart">Начать заново</button>
+      <button class="secondary" id="resExit">Выйти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== v6: экран выхода ===== -->
+<div class="exit-overlay" id="exitScreen" style="display:none">
+  <div class="results-card">
+    <h2 class="exit-title">ТЫ ВЫШЕЛ</h2>
+    <p class="exit-text">
+      Тест остановлен. Банан остался ждать.<br>
+      Спасибо за нервы — они нам пригодились.
+    </p>
+    <div class="results-actions">
+      <button class="action" id="exitRestart">Начать заново</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const defaultState = {
+  score:0,
+  clicks:0,
+  totalEarned:0,
+  perClick:1,
+  perSecond:0,
+  adCount:0,
+  chaos:35,
+  playSeconds:0,
+  upgrades:[0,0,0,0,0,0],
+  settings:{
+    ads:true,
+    invert:true,
+    lag:true,
+    visual:true,
+    mad:false
+  },
+  achievements: Array(23).fill(false),
+  // v6
+  psyche: 100,
+  micSpikes: 0,
+  spokenWords: 0,
+  lastWord: "",
+  infinite: false,
+  resultsShown: false
+};
+
+let state;
+
+try {
+  state = JSON.parse(localStorage.getItem("bananaClickerSave")) || structuredClone(defaultState);
+} catch {
+  state = structuredClone(defaultState);
+}
+
+state.settings = {...defaultState.settings,...(state.settings || {})};
+state.upgrades = state.upgrades || [...defaultState.upgrades];
+state.achievements = state.achievements || [];
+while (state.achievements.length < 23) state.achievements.push(false);
+state.achievements = state.achievements.slice(0, 23);
+if (typeof state.playSeconds !== "number") state.playSeconds = 0;
+if (typeof state.won !== "boolean") state.won = false;
+if (typeof state.adminChaosOff !== "boolean") state.adminChaosOff = false;
+// v6: психика, бесконечный режим и показ результатов
+if (typeof state.psyche !== "number" || isNaN(state.psyche)) state.psyche = 100;
+state.psyche = Math.max(0, Math.min(100, state.psyche));
+if (typeof state.micSpikes !== "number") state.micSpikes = 0;
+if (typeof state.spokenWords !== "number") state.spokenWords = 0;
+if (typeof state.lastWord !== "string") state.lastWord = "";
+if (typeof state.infinite !== "boolean") state.infinite = false;
+if (typeof state.resultsShown !== "boolean") state.resultsShown = false;
+
+const GRACE_SECONDS = 28; // первые секунды — без ада, чтобы человек не ушёл сразу
+const RESULTS_SECONDS = 600; // 10 минут — контрольная точка
+
+function getDifficultyLevel() {
+  // ~12 сек на уровень, максимум 100
+  return Math.min(100, Math.floor(state.playSeconds / 12));
+}
+
+function getDifficultyName() {
+  const lvl = getDifficultyLevel();
+  if (lvl >= 100) return "ПОБЕДИТЕЛЬ";
+  if (lvl >= 90) return "Почти сломался";
+  if (lvl >= 75) return "Железная воля";
+  if (lvl >= 50) return "Терпеливый псих";
+  if (lvl >= 30) return "Уже бесит";
+  if (lvl >= 15) return "Разминка";
+  if (lvl >= 5) return "Лёгкий кринж";
+  return "Спокойно";
+}
+
+function getPlayersPercent() {
+  const lvl = getDifficultyLevel();
+  // красивая кривая «выживаемости»
+  const pct = 100 * Math.pow(0.955, lvl);
+  return Math.max(0.01, Math.round(pct * 100) / 100);
+}
+
+function getDifficultyMult() {
+  return 1 + getDifficultyLevel() * 0.035;
+}
+
+function inGrace() {
+  return state.playSeconds < GRACE_SECONDS;
+}
+
+function chaosAllowed() {
+  return !state.adminChaosOff && !inGrace() && !state.won && !isPaused();
+}
+
+let adTimer = null;
+let adXMoveTimer = null;
+let eventTimer = null;
+let randomEventTimer = null;
+let adSecondsLeft = 0;
+let isAdOpen = false;
+let chaosActive = false;
+let shuffled = false;
+let screamerActive = false;
+let screamerTimeout = null;
+
+// v6: пауза до старта / результаты / выход
+let gameStarted = false;
+let resultsPaused = false;
+let exitScreenOpen = false;
+let startingGame = false;
+
+function isPaused() {
+  return !gameStarted || resultsPaused || exitScreenOpen;
+}
+
+const upgrades = [
+  {name:"🍌 Банановая сила",desc:"+1 банан за клик",base:25,add:1},
+  {name:"🐒 Обезьяна-помощник",desc:"+1 банан в секунду",base:50,add:1},
+  {name:"🏭 Банановая фабрика",desc:"+5 бананов в секунду",base:250,add:5},
+  {name:"🚀 Банановая ракета",desc:"+10 бананов в секунду",base:1000,add:10},
+  {name:"👑 Банановая империя",desc:"+50 бананов в секунду",base:5000,add:50},
+  {name:"🌌 Банановая галактика",desc:"+200 бананов в секунду",base:20000,add:200}
+];
+
+function save() {
+  localStorage.setItem("bananaClickerSave",JSON.stringify(state));
+}
+
+function cost(i) {
+  return Math.floor(upgrades[i].base * Math.pow(1.65,state.upgrades[i]));
+}
+
+function recalculate() {
+  state.perClick = 1 + state.upgrades[0];
+  state.perSecond =
+    state.upgrades[1] +
+    state.upgrades[2]*5 +
+    state.upgrades[3]*10 +
+    state.upgrades[4]*50 +
+    state.upgrades[5]*200;
+}
+
+let lastUpgradeUpdate = 0;
+
+// ===== v6: эволюция банана каждые 10 уровней =====
+const BANANA_SKINS = [
+  {id:"normal",      min:0,   emoji:"🍌",    size:"145px"},
+  {id:"ripe",        min:10,  emoji:"🍌✨",  size:"145px"},
+  {id:"big",         min:20,  emoji:"🍌",    size:"205px"},
+  {id:"burnt",       min:30,  emoji:"🧨",    size:"145px"},
+  {id:"demon",       min:40,  emoji:"👹",    size:"155px"},
+  {id:"skull",       min:50,  emoji:"💀",    size:"155px"},
+  {id:"eye",         min:60,  emoji:"👁️",   size:"155px"},
+  {id:"blood",       min:70,  emoji:"🩸",    size:"155px"},
+  {id:"void",        min:80,  emoji:"⬛",    size:"150px"},
+  {id:"almost-sole", min:90,  emoji:"👟",    size:"150px"},
+  {id:"sole",        min:100, emoji:"👟",    size:"160px"}
+];
+
+function getBananaSkin(level) {
+  const lvl = Math.max(0, Math.min(100, Math.floor(level)));
+  let skin = BANANA_SKINS[0];
+  for (const s of BANANA_SKINS) {
+    if (lvl >= s.min) skin = s;
+  }
+  return skin;
+}
+
+function updateBananaSkin(level, force = false) {
+  const banana = $("banana");
+  if (!banana) return;
+
+  const skin = getBananaSkin(level);
+  if (!force && banana.dataset.skin === skin.id) return;
+
+  banana.dataset.skin = skin.id;
+  banana.classList.toggle("almost-sole", skin.id === "almost-sole");
+  banana.classList.toggle("sole", skin.id === "sole");
+
+  if (!banana.classList.contains("fleeing")) {
+    banana.textContent = skin.emoji;
+  }
+  banana.style.fontSize = skin.size;
+}
+
+function refreshProgressUI() {
+  const dl = getDifficultyLevel();
+  const dname = getDifficultyName();
+  const pct = getPlayersPercent();
+
+  // v6: банан эволюционирует каждые 10 уровней
+  updateBananaSkin(dl);
+
+  if ($("diffStatus")) {
+    $("diffStatus").textContent = "УР. " + dl + " / 100";
+    $("diffStatus").style.color = dl >= 80 ? "#ff6464" : dl >= 40 ? "#ff9f43" : "#b5ed45";
+  }
+  if ($("levelBar")) $("levelBar").style.width = dl + "%";
+  if ($("levelBig")) $("levelBig").textContent = dl;
+  if ($("percentileLabelTop")) $("percentileLabelTop").textContent = pct + "% выжили";
+  if ($("goalLabel")) $("goalLabel").textContent = state.won ? "ПОБЕДА" : "Тест нервов";
+
+  if ($("statDiffLvl")) $("statDiffLvl").textContent = dl + " / 100";
+  if ($("statDiffName")) $("statDiffName").textContent = dname;
+  if ($("statPlayTime")) {
+    const m = Math.floor(state.playSeconds / 60);
+    const s = state.playSeconds % 60;
+    $("statPlayTime").textContent = m > 0 ? `${m}м ${s}с` : `${s}с`;
+  }
+  if ($("percentileLabel")) $("percentileLabel").textContent = pct + "% игроков";
+  if ($("percentileBar")) $("percentileBar").style.width = Math.max(2, Math.min(100, pct)) + "%";
+
+  // Подсказки по фазам
+  if ($("missionTitle") && $("missionDesc") && $("clickHint") && $("mainSubtitle")) {
+    if (state.won) {
+      $("missionTitle").textContent = "👑 Ты прошёл тест нервов";
+      $("missionDesc").textContent = "Админ-режим открыт. Делай что хочешь.";
+      $("clickHint").textContent = "Можно просто наслаждаться победой.";
+      $("mainSubtitle").textContent = "Ты в числе тех, кто не сдался.";
+    } else if (inGrace()) {
+      const left = GRACE_SECONDS - state.playSeconds;
+      $("missionTitle").textContent = "🎯 Цель: уровень 100";
+      $("missionDesc").textContent = `Спокойная фаза: ещё ${left} сек. Потом начнётся настоящий хаос.`;
+      $("clickHint").textContent = "Пока можно кликать спокойно. Запомни этот момент.";
+      $("mainSubtitle").textContent = "Сначала разминка. Потом проверка нервов.";
+    } else {
+      $("missionTitle").textContent = "🎯 Цель: уровень 100 · " + dname;
+      $("missionDesc").textContent = `Уровень ${dl}. ${pct}% игроков дошли хотя бы сюда. Не уходи.`;
+      $("clickHint").textContent = dl > 50 ? "Терпи. Ты уже далеко." : "Хаос растёт. Это нормально.";
+      $("mainSubtitle").textContent = "Дойди до 100. Большинство сдаются раньше.";
+    }
+  }
+
+  if ($("adminPanel")) {
+    $("adminPanel").style.display = state.won ? "block" : "none";
+  }
+}
+
+function checkVictory() {
+  if (state.won) return;
+  if (getDifficultyLevel() >= 100) {
+    state.won = true;
+    state.adminChaosOff = true;
+    // выключаем бесячие штуки
+    state.settings.ads = false;
+    state.settings.lag = false;
+    state.settings.invert = false;
+    state.settings.visual = false;
+    state.settings.mad = false;
+    save();
+    refreshProgressUI();
+    update(true);
+    // лёгкий эффект победы
+    document.body.classList.add("flash");
+    setTimeout(() => document.body.classList.remove("flash"), 600);
+  }
+}
+
+function update(forceUpgrades = false) {
+  $("score").textContent = Math.floor(state.score).toLocaleString("ru");
+  $("clicks").textContent = state.clicks.toLocaleString("ru");
+  $("perClick").textContent = state.perClick;
+  $("perSecond").textContent = state.perSecond;
+  $("totalEarned").textContent = Math.floor(state.totalEarned).toLocaleString("ru");
+  $("adCount").textContent = state.adCount;
+  $("statChaos").textContent = state.chaos+"%";
+  if ($("statPsyche")) $("statPsyche").textContent = micActive ? Math.round(state.psyche)+"%" : "—";
+  if ($("statMicSpikes")) $("statMicSpikes").textContent = state.micSpikes;
+  if ($("statWords")) $("statWords").textContent = state.spokenWords;
+  if ($("statLastWord")) $("statLastWord").textContent = state.lastWord || "—";
+  updateMicStateUI();
+  updateVoiceUI();
+  if ($("statMode")) $("statMode").textContent = state.infinite ? "Бесконечно" : (state.resultsShown ? "После 10 мин" : "Тест");
+  $("chaosValue").textContent = state.chaos+"%";
+  $("chaosSlider").value = state.chaos;
+  $("chaosStatus").textContent = "ХАОС: "+state.chaos+"%";
+  $("chaosStatus").style.color = state.chaos>75 ? "#ff6464" : "#b5ed45";
+
+  refreshProgressUI();
+
+  $("adsToggle").checked = state.settings.ads;
+  $("invertToggle").checked = state.settings.invert;
+  $("lagToggle").checked = state.settings.lag;
+  $("visualToggle").checked = state.settings.visual;
+  $("madToggle").checked = state.settings.mad;
+
+  // Обновляем кнопки улучшений максимум раз в 400 мс, чтобы не мигали
+  const now = Date.now();
+  if (forceUpgrades || now - lastUpgradeUpdate > 400) {
+    updateUpgradeButtons();
+    lastUpgradeUpdate = now;
+  }
+
+  checkAchievements();
+}
+
+function earn(amount) {
+  state.score += amount;
+  state.totalEarned += amount;
+  update();
+}
+
+function floatingText(text,x,y) {
+  const el = document.createElement("div");
+  el.textContent = text;
+  el.style.position = "fixed";
+  el.style.left = x+"px";
+  el.style.top = y+"px";
+  el.style.color = "#ffe34d";
+  el.style.fontWeight = "800";
+  el.style.fontSize = "22px";
+  el.style.pointerEvents = "none";
+  el.style.zIndex = "50";
+  el.style.transition = "all .8s";
+  document.body.appendChild(el);
+
+  requestAnimationFrame(()=>{
+    el.style.transform = "translateY(-55px)";
+    el.style.opacity = "0";
+  });
+
+  setTimeout(()=>el.remove(),900);
+}
+
+function clickBanana(event) {
+  if(isAdOpen || screamerActive || isPaused()) return;
+
+  // Более злые задержки + растут со сложностью
+  let delay = 0;
+  if (state.settings.lag) {
+    const mult = getDifficultyMult();
+    const maxDelay = (state.settings.mad ? 2200 : Math.max(120, state.chaos * 14)) * mult;
+    delay = Math.random() * maxDelay;
+    if (Math.random() < 0.18 + getDifficultyLevel() * 0.02) {
+      delay = maxDelay * (0.7 + Math.random() * 0.5);
+    }
+  }
+
+  const button = $("clickButton");
+  button.disabled = true;
+
+  setTimeout(()=>{
+    if(isAdOpen || screamerActive) {
+      button.disabled = false;
+      return;
+    }
+
+    // Промах: при лагах или когда банан уворачивается
+    const bananaEl = $("banana");
+    const isFleeing = bananaEl.classList.contains("fleeing") || bananaEl.classList.contains("dodging");
+    const missChance = isFleeing
+      ? Math.min(0.85, 0.55 + getDifficultyLevel() * 0.03)
+      : (state.settings.lag ? (state.chaos / 220) * getDifficultyMult() : 0);
+
+    if (Math.random() < missChance) {
+      floatingText("МИМО!", event?.clientX || window.innerWidth/2, event?.clientY || window.innerHeight/2);
+      showNotice(isFleeing ? "🍌 Банан увернулся!" : "🍌 Банан увернулся...");
+      button.disabled = false;
+      return;
+    }
+
+    state.clicks++;
+    earn(state.perClick);
+
+    const x = event?.clientX || window.innerWidth/2;
+    const y = event?.clientY || window.innerHeight/2;
+    floatingText("+"+state.perClick, x, y);
+
+    $("banana").style.transform =
+      `rotate(${Math.random()*40-20}deg) scale(${0.75 + Math.random()*0.5})`;
+
+    setTimeout(()=>$("banana").style.transform="", 180);
+
+    button.disabled = false;
+    checkAchievements();
+
+    if(Math.random() < state.chaos/400) {
+      showNotice(["🍌 Банан доволен... наверное.", "🍌 Ещё кликай. Ещё.", "🍌 Ты правда думаешь, что это поможет?"][Math.floor(Math.random()*3)]);
+    }
+    save();
+  }, delay);
+}
+
+$("banana").addEventListener("click",clickBanana);
+$("clickButton").addEventListener("click",clickBanana);
+
+function renderUpgrades() {
+  // Полный рендер только при старте и после покупки
+  $("upgradeList").innerHTML = "";
+
+  upgrades.forEach((u, i) => {
+    const price = cost(i);
+    const item = document.createElement("div");
+    item.className = "upgrade";
+    item.dataset.index = i;
+
+    item.innerHTML = `
+      <div>
+        <b>${u.name}</b>
+        <p>${u.desc} · Куплено: <span class="upgrade-level">${state.upgrades[i]}</span></p>
+      </div>
+      <button class="action upgrade-btn" ${state.score < price ? "disabled" : ""}>
+        <span class="upgrade-price">${price.toLocaleString("ru")}</span> 🍌
+      </button>
+    `;
+
+    item.querySelector("button").addEventListener("click", () => {
+      const currentPrice = cost(i);
+      if (state.score < currentPrice) return;
+      state.score -= currentPrice;
+      state.upgrades[i]++;
+      recalculate();
+      renderUpgrades();          // полный рендер только после покупки
+      update(true);              // сразу обновить всё
+      save();
+      showNotice("Улучшение куплено!");
+    });
+
+    $("upgradeList").appendChild(item);
+  });
+}
+
+function updateUpgradeButtons() {
+  // Лёгкое обновление без уничтожения кнопок — убирает мигание
+  const items = $("upgradeList").querySelectorAll(".upgrade");
+  if (items.length === 0) {
+    renderUpgrades();
+    return;
+  }
+
+  items.forEach((item) => {
+    const i = Number(item.dataset.index);
+    const price = cost(i);
+    const btn = item.querySelector(".upgrade-btn");
+    const priceSpan = item.querySelector(".upgrade-price");
+    const levelSpan = item.querySelector(".upgrade-level");
+
+    if (priceSpan) priceSpan.textContent = price.toLocaleString("ru");
+    if (levelSpan) levelSpan.textContent = state.upgrades[i];
+    if (btn) {
+      const shouldDisable = state.score < price;
+      if (btn.disabled !== shouldDisable) {
+        btn.disabled = shouldDisable;
+      }
+    }
+  });
+}
+
+const achievementData = [
+  // Оригинальные
+  {name:"Первый клик",desc:"Нажми на банан хотя бы один раз.",emoji:"🍌"},
+  {name:"Тысяча кликов",desc:"Сделай 1 000 нажатий.",emoji:"🏅"},
+  {name:"Банановый фанат",desc:"Сделай 10 000 нажатий.",emoji:"👑"},
+  // 20 тупых
+  {name:"Зачем я это делаю",desc:"Сделай 50 кликов. Серьёзно.",emoji:"😐"},
+  {name:"Палец устал",desc:"Сделай 200 кликов.",emoji:"👆"},
+  {name:"Обезьяний стажёр",desc:"Купи хотя бы 1 обезьяну.",emoji:"🐒"},
+  {name:"Фабрикант кожуры",desc:"Купи банановую фабрику.",emoji:"🏭"},
+  {name:"В космос на банане",desc:"Купи банановую ракету.",emoji:"🚀"},
+  {name:"Император кожуры",desc:"Купи банановую империю.",emoji:"👑"},
+  {name:"Галактический идиот",desc:"Купи банановую галактику.",emoji:"🌌"},
+  {name:"Силач",desc:"Прокачай банановую силу до 5 уровня.",emoji:"💪"},
+  {name:"Рекламный заложник",desc:"Посмотри 5 реклам.",emoji:"📺"},
+  {name:"Рекламный раб",desc:"Посмотри 15 реклам.",emoji:"📺"},
+  {name:"Хаос 50%",desc:"Поставь силу раздражения на 50+.",emoji:"🌪️"},
+  {name:"Хаос максимум",desc:"Поставь силу раздражения на 100.",emoji:"☢️"},
+  {name:"Безумец",desc:"Включи безумный режим.",emoji:"🤪"},
+  {name:"Первые 100 бананов",desc:"Накопи 100 бананов за всё время.",emoji:"💰"},
+  {name:"Тысяча бананов",desc:"Накопи 1 000 бананов за всё время.",emoji:"🤑"},
+  {name:"Десять тысяч",desc:"Накопи 10 000 бананов за всё время.",emoji:"🏦"},
+  {name:"Кликер выходного дня",desc:"Сделай 500 кликов.",emoji:"🛋️"},
+  {name:"Почти ничего не сделал",desc:"Купи любое улучшение.",emoji:"🤷"},
+  {name:"Жертва скримера",desc:"Просто подожди. Он придёт.",emoji:"💀"},
+  {name:"Я ещё здесь",desc:"Сделай 3 000 кликов. Зачем?",emoji:"🫠"}
+];
+
+function checkAchievements() {
+  const conditions = [
+    state.clicks >= 1,
+    state.clicks >= 1000,
+    state.clicks >= 10000,
+    // 20 тупых
+    state.clicks >= 50,
+    state.clicks >= 200,
+    state.upgrades[1] >= 1,
+    state.upgrades[2] >= 1,
+    state.upgrades[3] >= 1,
+    state.upgrades[4] >= 1,
+    state.upgrades[5] >= 1,
+    state.upgrades[0] >= 5,
+    state.adCount >= 5,
+    state.adCount >= 15,
+    state.chaos >= 50,
+    state.chaos >= 100,
+    state.settings.mad === true,
+    state.totalEarned >= 100,
+    state.totalEarned >= 1000,
+    state.totalEarned >= 10000,
+    state.clicks >= 500,
+    state.upgrades.some(u => u >= 1),
+    state.adCount >= 1 || state.clicks >= 100, // жертва скримера — просто поиграл
+    state.clicks >= 3000
+  ];
+
+  let changed = false;
+  conditions.forEach((condition,i)=>{
+    if(condition && !state.achievements[i]) {
+      state.achievements[i] = true;
+      changed = true;
+    }
+  });
+  if (changed) {
+    renderAchievements();
+    save();
+  }
+}
+
+function renderAchievements() {
+  $("achievementList").innerHTML = "";
+
+  achievementData.forEach((a,i)=>{
+    const unlocked = state.achievements[i];
+    const div = document.createElement("div");
+    div.className = "achievement "+(unlocked?"":"locked");
+    div.innerHTML = `
+      <div class="emoji">${unlocked?a.emoji:"🔒"}</div>
+      <div>
+        <b>${a.name}</b>
+        <div style="color:#999;font-size:13px">${a.desc}</div>
+        <small>${unlocked?"Получено":"Не получено"}</small>
+      </div>
+    `;
+    $("achievementList").appendChild(div);
+  });
+}
+
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+
+  $(id).classList.add("active");
+  document.querySelector(`[data-page="${id}"]`).classList.add("active");
+}
+
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>showPage(btn.dataset.page));
+});
+
+function showNotice(message) {
+  // уведомления отключены — больше не мешают
+  return;
+}
+
+// ===== v6: микрофон и прочность психики =====
+let micStream = null;
+let audioCtx = null;
+let analyser = null;
+let micBuf = null;
+let micRAF = null;
+let micActive = false;
+let micLevel = 0;
+let micBaseline = 0.015;
+let lastMicSpikeAt = 0;
+let micError = "";
+
+// v6.1: распознавание слов и голоса (а не любого стука)
+let freqBuf = null;
+let voiceBuf = null;
+let voiceFrames = 0;
+let voiceDetected = false;
+let lastVoiceAt = 0;
+let lastSpeechAt = 0;
+let lastVoiceUIAt = 0;
+let recognition = null;
+let recognitionRunning = false;
+let speechSupported = false;
+let speechDisabled = false;
+
+function getMicErrorMessage(error) {
+  if (!window.isSecureContext) {
+    return "Микрофон работает только на https:// или http://localhost. Открой игру через локальный сервер, а не как file://.";
+  }
+  if (error && error.name === "NotAllowedError") {
+    return "Доступ к микрофону запрещён. Разреши его в настройках сайта (иконка замка/микрофона в адресной строке).";
+  }
+  if (error && error.name === "NotFoundError") {
+    return "Микрофон не найден. Подключи его и попробуй снова.";
+  }
+  if (error && error.name === "NotReadableError") {
+    return "Микрофон занят другим приложением. Закрой его и попробуй снова.";
+  }
+  return "Микрофон недоступен. Тест психики отключён — игра продолжится без него.";
+}
+
+// ===== распознавание слов (Web Speech API, если браузер умеет) =====
+function initSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    speechSupported = false;
+    return false;
+  }
+
+  speechSupported = true;
+  speechDisabled = false;
+  if (recognition) return true;
+
+  recognition = new SR();
+  recognition.lang = "ru-RU";
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event) => {
+    let text = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      if (event.results[i].isFinal) {
+        text += " " + event.results[i][0].transcript;
+      }
+    }
+    text = text.trim();
+    if (text) handleRecognizedSpeech(text);
+  };
+
+  recognition.onerror = (event) => {
+    if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+      speechDisabled = true;
+      speechSupported = false;
+      stopSpeechRecognition();
+    }
+    // "no-speech", "aborted", "network" — просто попробуем перезапустить
+  };
+
+  recognition.onend = () => {
+    recognitionRunning = false;
+    if (micActive && gameStarted && speechSupported && !speechDisabled) {
+      setTimeout(() => {
+        if (micActive && gameStarted && speechSupported && !speechDisabled) {
+          startSpeechRecognition();
+        }
+      }, 700);
+    }
+  };
+
+  return true;
+}
+
+function startSpeechRecognition() {
+  if (!recognition || recognitionRunning || !micActive || speechDisabled) return;
+  try {
+    recognition.start();
+    recognitionRunning = true;
+  } catch (e) {
+    recognitionRunning = false;
+  }
+}
+
+function stopSpeechRecognition() {
+  if (!recognition) return;
+  try { recognition.stop(); } catch (e) {}
+  recognitionRunning = false;
+}
+
+async function enableMic() {
+  if (micActive) return true;
+
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error("getUserMedia недоступен");
+    }
+
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: true }
+    });
+
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new Ctx();
+    if (audioCtx.state === "suspended") await audioCtx.resume();
+
+    const source = audioCtx.createMediaStreamSource(micStream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.45;
+    source.connect(analyser);
+
+    micBuf = new Uint8Array(analyser.fftSize);
+    freqBuf = new Uint8Array(analyser.frequencyBinCount);
+    voiceBuf = new Float32Array(Math.floor(analyser.fftSize / 4));
+    micActive = true;
+    micError = "";
+    micBaseline = 0.015;
+    lastMicSpikeAt = 0;
+    voiceFrames = 0;
+    voiceDetected = false;
+
+    initSpeechRecognition();
+    if (gameStarted) startSpeechRecognition();
+
+    if ($("micMeterWrap")) $("micMeterWrap").style.display = "flex";
+    if ($("startMicMeterWrap")) $("startMicMeterWrap").style.display = "flex";
+    if ($("micStatus")) {
+      $("micStatus").textContent = speechSupported
+        ? "Микрофон подключён. Распознаются слова и голос. Стук по столу не считается голосом."
+        : "Микрофон подключён. Браузер не умеет распознавать слова — работает детектор голоса (стук не считается).";
+      $("micStatus").style.color = "#b5ed45";
+    }
+    updatePsycheUI();
+    updateMicStateUI();
+    micLoop();
+    return true;
+  } catch (e) {
+    micActive = false;
+    micError = getMicErrorMessage(e);
+
+    if ($("micMeterWrap")) $("micMeterWrap").style.display = "none";
+    if ($("startMicMeterWrap")) $("startMicMeterWrap").style.display = "none";
+    if ($("micStatus")) {
+      $("micStatus").textContent = micError;
+      $("micStatus").style.color = "#ff9f43";
+    }
+    updatePsycheUI();
+    updateMicStateUI();
+    return false;
+  }
+}
+
+function disableMic() {
+  micActive = false;
+  cancelAnimationFrame(micRAF);
+  micRAF = null;
+  stopSpeechRecognition();
+
+  if (micStream) {
+    micStream.getTracks().forEach(track => track.stop());
+    micStream = null;
+  }
+  if (audioCtx) {
+    try { audioCtx.close(); } catch (e) {}
+    audioCtx = null;
+  }
+
+  analyser = null;
+  micBuf = null;
+  freqBuf = null;
+  voiceBuf = null;
+  micLevel = 0;
+  micError = "";
+  voiceFrames = 0;
+  voiceDetected = false;
+
+  if ($("voiceState")) $("voiceState").style.display = "none";
+  if ($("micMeterWrap")) $("micMeterWrap").style.display = "none";
+  if ($("startMicMeterWrap")) $("startMicMeterWrap").style.display = "none";
+  if ($("micMeter")) $("micMeter").style.width = "0%";
+  if ($("startMicMeter")) $("startMicMeter").style.width = "0%";
+  if ($("micLevelText")) $("micLevelText").textContent = "0%";
+  if ($("startMicLevelText")) $("startMicLevelText").textContent = "0%";
+  updatePsycheUI();
+  updateMicStateUI();
+}
+
+function micLoop() {
+  if (!micActive || !analyser || !micBuf) return;
+
+  analyser.getByteTimeDomainData(micBuf);
+  if (freqBuf) analyser.getByteFrequencyData(freqBuf);
+
+  let sum = 0;
+  for (let i = 0; i < micBuf.length; i++) {
+    const v = (micBuf[i] - 128) / 128;
+    sum += v * v;
+  }
+  const rms = Math.sqrt(sum / micBuf.length);
+  // Более чувствительная шкала: тихая речь тоже видна
+  micLevel = Math.min(1, Math.pow(rms, 0.7) * 3.2);
+
+  const voice = detectVoice(rms);
+  voiceDetected = voice.isVoice;
+
+  // Голос должен продержаться несколько кадров — одиночный стук отсекается
+  if (voice.isVoice) voiceFrames++;
+  else voiceFrames = Math.max(0, voiceFrames - 1);
+
+  const levelPct = Math.round(micLevel * 100) + "%";
+  if ($("micMeter")) $("micMeter").style.width = (micLevel * 100).toFixed(1) + "%";
+  if ($("micLevelText")) $("micLevelText").textContent = levelPct;
+  if ($("startMicMeter")) $("startMicMeter").style.width = (micLevel * 100).toFixed(1) + "%";
+  if ($("startMicLevelText")) $("startMicLevelText").textContent = levelPct;
+
+  // Медленная база «обычного шума»
+  micBaseline = micBaseline * 0.995 + micLevel * 0.005;
+
+  const now = performance.now();
+
+  // Голосовой срыв: только если это действительно голос, а не стук/хлопок.
+  // На паузе и в меню психика не меняется.
+  if (!isPaused() && voiceFrames >= 8 && now - lastVoiceAt > 900 && now - lastSpeechAt > 1400) {
+    lastVoiceAt = now;
+    applyVoiceDamage();
+  }
+
+  if (now - lastVoiceUIAt > 150) {
+    lastVoiceUIAt = now;
+    updateVoiceUI();
+  }
+
+  micRAF = requestAnimationFrame(micLoop);
+}
+
+// Отличаем человеческий голос от стука/хлопка:
+// - автокорреляция ищет периодичность (тон голоса 70–350 Гц)
+// - спектр проверяет речевую полосу 250–4000 Гц и «тональность»
+function detectVoice(rms) {
+  if (rms < 0.01 || !voiceBuf || !freqBuf) return { isVoice: false };
+
+  const step = 4;
+  const n = voiceBuf.length;
+  let energy = 0;
+
+  for (let i = 0; i < n; i++) {
+    const v = (micBuf[i * step] - 128) / 128;
+    voiceBuf[i] = v;
+    energy += v * v;
+  }
+
+  if (energy < 0.0002) return { isVoice: false };
+
+  const sampleRate = audioCtx ? audioCtx.sampleRate : 48000;
+  const effRate = sampleRate / step;
+  const minLag = Math.max(2, Math.floor(effRate / 350));
+  const maxLag = Math.min(n - 2, Math.floor(effRate / 70));
+
+  let best = 0;
+  let bestLag = 0;
+
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let cross = 0;
+    let e1 = 0;
+    let e2 = 0;
+
+    for (let i = 0; i < n - lag; i++) {
+      const a = voiceBuf[i];
+      const b = voiceBuf[i + lag];
+      cross += a * b;
+      e1 += a * a;
+      e2 += b * b;
+    }
+
+    const norm = cross / Math.sqrt(e1 * e2 + 1e-9);
+    if (norm > best) {
+      best = norm;
+      bestLag = lag;
+    }
+  }
+
+  const pitchConfidence = Math.max(0, Math.min(1, best));
+  const pitchHz = bestLag ? effRate / bestLag : 0;
+
+  const fftSize = analyser && analyser.fftSize ? analyser.fftSize : 2048;
+  const binHz = sampleRate / fftSize;
+
+  let total = 0;
+  let voiceBand = 0;
+  let logSum = 0;
+  let count = 0;
+
+  for (let i = 1; i < freqBuf.length; i++) {
+    const hz = i * binHz;
+    if (hz > 4000) break;
+
+    const mag = freqBuf[i] / 255;
+    total += mag;
+
+    if (hz >= 250) {
+      voiceBand += mag;
+      logSum += Math.log(mag + 0.001);
+      count++;
+    }
+  }
+
+  const voiceRatio = total > 0 ? voiceBand / total : 0;
+  const flatness = count > 0 ? Math.exp(logSum / count) / (voiceBand / count + 0.001) : 1;
+
+  const isVoice =
+    ((pitchConfidence > 0.35 && voiceRatio > 0.4 && flatness < 0.72) ||
+     (pitchConfidence > 0.5 && voiceRatio > 0.3 && flatness < 0.82));
+
+  return { isVoice, pitchConfidence, pitchHz, voiceRatio, flatness };
+}
+
+function pulsePsychePill() {
+  const pill = $("psycheStatus");
+  if (pill) {
+    pill.style.transform = "scale(1.18)";
+    setTimeout(() => { pill.style.transform = ""; }, 180);
+  }
+}
+
+function applyVoiceDamage() {
+  if (!micActive) return;
+
+  const stress = isAdOpen || screamerActive;
+
+  // Во время рекламы/скримера урон большой, в обычной игре — маленький
+  const damage = stress
+    ? 5 + Math.min(6, getDifficultyLevel() * 0.06)
+    : 0.8 + Math.min(1.6, getDifficultyLevel() * 0.016);
+
+  state.psyche = Math.max(0, state.psyche - damage);
+  state.micSpikes++;
+  updatePsycheUI();
+  pulsePsychePill();
+}
+
+function applySpeechDamage(wordCount) {
+  if (!micActive) return;
+
+  const stress = isAdOpen || screamerActive;
+  const damage = stress
+    ? Math.min(18, 3 + wordCount * 2.5)
+    : Math.min(4, wordCount * 0.5);
+
+  state.psyche = Math.max(0, state.psyche - damage);
+  state.micSpikes++;
+  updatePsycheUI();
+  pulsePsychePill();
+}
+
+function handleRecognizedSpeech(text) {
+  if (!micActive || isPaused()) return;
+
+  const words = text
+    .split(/\s+/)
+    .map(w => w.replace(/[^\p{L}\p{N}]/gu, ""))
+    .filter(w => w.length >= 2);
+
+  if (!words.length) return;
+
+  state.spokenWords += words.length;
+  state.lastWord = words[words.length - 1].slice(0, 32);
+  lastSpeechAt = performance.now();
+  voiceDetected = true;
+
+  applySpeechDamage(words.length);
+  updateVoiceUI(true);
+  update();
+  save();
+}
+
+function updateVoiceUI(forceVoice = false) {
+  const el = $("voiceState");
+  if (!el) return;
+
+  if (!micActive || !gameStarted) {
+    el.style.display = "none";
+    return;
+  }
+
+  el.style.display = "inline-block";
+
+  const speaking = forceVoice || voiceFrames >= 3 || (performance.now() - lastSpeechAt < 1200);
+
+  if (speaking) {
+    el.textContent = "🗣 ГОЛОС";
+    el.style.color = "#b5ed45";
+    el.title = "Распознан человеческий голос";
+  } else if (micLevel > 0.35) {
+    el.textContent = "🥁 ШУМ";
+    el.style.color = "#ff9f43";
+    el.title = "Громкий звук, но не голос — психика не страдает";
+  } else {
+    el.textContent = "🔇 ТИХО";
+    el.style.color = "#8a9678";
+    el.title = "Тихо";
+  }
+}
+
+function updatePsycheUI() {
+  const el = $("psycheStatus");
+  if (!el) return;
+
+  if (!micActive) {
+    el.style.display = "none";
+    if ($("statPsyche")) $("statPsyche").textContent = "—";
+    return;
+  }
+
+  el.style.display = "inline-block";
+  el.textContent = "🧠 " + Math.round(state.psyche) + "%";
+  el.style.color = state.psyche < 30 ? "#ff6464" : state.psyche < 60 ? "#ff9f43" : "#b5ed45";
+  if ($("statPsyche")) $("statPsyche").textContent = Math.round(state.psyche) + "%";
+}
+
+function updateMicStateUI() {
+  const el = $("micState");
+  if (!el) return;
+
+  if (!gameStarted) {
+    el.style.display = "none";
+    return;
+  }
+
+  el.style.display = "inline-block";
+  if (micActive) {
+    el.textContent = "🎤 ВКЛ";
+    el.style.color = "#b5ed45";
+    el.title = "Микрофон активен";
+  } else {
+    el.textContent = micError ? "🎤 НЕТ ДОСТУПА" : "🎤 ВЫКЛ";
+    el.style.color = micError ? "#ff6464" : "#8a9678";
+    el.title = micError || "Микрофон выключен";
+  }
+}
+
+// Тихая обстановка восстанавливает психику, шум во время рекламы — ломает
+setInterval(() => {
+  if (!micActive) return;
+
+  if (isPaused()) return;
+
+  const stress = isAdOpen || screamerActive;
+
+  if (stress) {
+    if (micLevel < 0.12) state.psyche = Math.min(100, state.psyche + 0.4);
+    else if (micLevel < 0.22) state.psyche = Math.min(100, state.psyche + 0.12);
+  } else if (micLevel < 0.08) {
+    state.psyche = Math.min(100, state.psyche + 0.12);
+  }
+
+  updatePsycheUI();
+}, 500);
+
+// ===== v6: стартовое меню =====
+function hasSavedProgress() {
+  return state.playSeconds > 0 || state.clicks > 0 || state.totalEarned > 0;
+}
+
+function initStartMenu() {
+  const has = hasSavedProgress();
+  const cont = $("continueOption");
+
+  if (cont) {
+    cont.disabled = !has;
+    cont.style.display = has ? "" : "none";
+  }
+
+  if ($("startDiff")) $("startDiff").value = has ? "-1" : "0";
+  if ($("startChaos")) $("startChaos").value = state.chaos;
+  if ($("startChaosValue")) $("startChaosValue").textContent = state.chaos + "%";
+  if ($("startDiffHint")) {
+    $("startDiffHint").textContent = has
+      ? "Найдено сохранение: уровень " + getDifficultyLevel() + ". Можно продолжить или начать с выбранного уровня."
+      : "Чем выше старт, тем быстрее начнётся хаос.";
+  }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if ($("micStatus")) {
+      $("micStatus").textContent = "Этот браузер не поддерживает микрофон или страница открыта в небезопасном режиме. Тест психики будет недоступен.";
+      $("micStatus").style.color = "#ff9f43";
+    }
+  }
+}
+
+async function startGame() {
+  if (startingGame) return;
+  startingGame = true;
+
+  const startBtn = $("startBtn");
+  const diff = Number($("startDiff").value);
+
+  if (startBtn) {
+    startBtn.disabled = true;
+    startBtn.textContent = $("startMic").checked ? "ПРОВЕРЯЕМ МИКРОФОН..." : "ЗАПУСКАЕМ ХАОС...";
+  }
+
+  if (diff >= 0) {
+    // Новая попытка с выбранного уровня
+    state.playSeconds = diff * 12;
+    state.psyche = 100;
+    state.micSpikes = 0;
+    state.infinite = false;
+    state.resultsShown = false;
+    if (state.won) {
+      state.won = false;
+      state.adminChaosOff = false;
+    }
+  }
+
+  state.chaos = Number($("startChaos").value);
+
+  if ($("startMic").checked) {
+    await enableMic();
+  } else {
+    disableMic();
+    if ($("micStatus")) {
+      $("micStatus").textContent = "Микрофон выключен. Тест психики не будет измеряться.";
+      $("micStatus").style.color = "#8a9678";
+    }
+  }
+
+  gameStarted = true;
+  resultsPaused = false;
+  exitScreenOpen = false;
+
+  if ($("startMenu")) $("startMenu").style.display = "none";
+  document.body.classList.remove("menu-open");
+
+  save();
+  update(true);
+  updatePsycheUI();
+  updateMicStateUI();
+  updateVoiceUI();
+  if (micActive) startSpeechRecognition();
+
+  scheduleRandomEvent();
+  scheduleAdvertisement();
+  scheduleScreamer();
+
+  if (startBtn) {
+    startBtn.disabled = false;
+    startBtn.textContent = "НАЧАТЬ ТЕСТ";
+  }
+  startingGame = false;
+}
+
+if ($("startChaos")) {
+  $("startChaos").addEventListener("input", () => {
+    if ($("startChaosValue")) $("startChaosValue").textContent = $("startChaos").value + "%";
+  });
+}
+if ($("startBtn")) {
+  $("startBtn").addEventListener("click", startGame);
+}
+if ($("micTestBtn")) {
+  $("micTestBtn").addEventListener("click", async () => {
+    const btn = $("micTestBtn");
+    btn.disabled = true;
+    btn.textContent = "🎤 Проверяем...";
+
+    const ok = await enableMic();
+
+    btn.disabled = false;
+    btn.textContent = ok ? "🎤 Микрофон работает" : "🎤 Попробовать снова";
+    if (ok) {
+      if ($("startMic")) $("startMic").checked = true;
+      if ($("micStatus")) {
+        $("micStatus").textContent = "Микрофон работает. Говори — шкала должна двигаться.";
+        $("micStatus").style.color = "#b5ed45";
+      }
+    }
+  });
+}
+
+// ===== v6: результаты 10-й минуты =====
+function getPsycheVerdict(level) {
+  if (!micActive) {
+    if (level >= 60) return "10 минут без микрофона. Нервы явно есть — но мы их не измерили. Впереди ещё 100 уровень.";
+    if (level >= 35) return "Ты дошёл до контрольной точки. Микрофон был выключен, поэтому психика осталась загадкой.";
+    return "10 минут позади. Микрофон выключен — считаем, что ты просто очень спокойный человек.";
+  }
+
+  const p = state.psyche;
+  if (p >= 85) return "Стальные нервы. Реклама кричала, а ты молчал. Психика почти не пострадала.";
+  if (p >= 65) return "Ты держишься. Были срывы, но психика выстояла. Для этого теста — хороший результат.";
+  if (p >= 45) return "Нервы на пределе. Ты ещё здесь, но микрофон всё слышал.";
+  if (p >= 25) return "Психика трещит. Ты выдержал 10 минут — это уже подвиг. Дальше будет хуже.";
+  return "Психика почти на нуле. Ты сломался, но не ушёл. Уважение.";
+}
+
+function showResults() {
+  if (resultsPaused) return;
+
+  resultsPaused = true;
+  state.resultsShown = true;
+  save();
+
+  if (isAdOpen) closeAdvertisement();
+  cancelScreamer();
+
+  const lvl = getDifficultyLevel();
+  if ($("resLevel")) $("resLevel").textContent = lvl + " / 100";
+  if ($("resPsyche")) $("resPsyche").textContent = micActive ? Math.round(state.psyche) + "%" : "—";
+  if ($("resClicks")) $("resClicks").textContent = state.clicks.toLocaleString("ru");
+  if ($("resAds")) $("resAds").textContent = state.adCount;
+  if ($("resWords")) $("resWords").textContent = state.spokenWords;
+  if ($("resVoice")) $("resVoice").textContent = state.micSpikes;
+  if ($("resVerdict")) $("resVerdict").textContent = getPsycheVerdict(lvl);
+  if ($("resultsModal")) $("resultsModal").style.display = "flex";
+
+  update(true);
+}
+
+function checkResults() {
+  if (!gameStarted || resultsPaused || state.infinite || state.resultsShown) return;
+  if (state.playSeconds >= RESULTS_SECONDS) showResults();
+}
+
+if ($("resContinue")) {
+  $("resContinue").addEventListener("click", () => {
+    state.infinite = true;
+    state.resultsShown = true;
+    resultsPaused = false;
+    if ($("resultsModal")) $("resultsModal").style.display = "none";
+    save();
+    update(true);
+    scheduleRandomEvent();
+    scheduleAdvertisement();
+    scheduleScreamer();
+  });
+}
+
+if ($("resRestart")) {
+  $("resRestart").addEventListener("click", () => {
+    if (!confirm("Начать заново? Весь прогресс, бананы и достижения будут удалены.")) return;
+    localStorage.removeItem("bananaClickerSave");
+    location.reload();
+  });
+}
+
+if ($("resExit")) {
+  $("resExit").addEventListener("click", () => {
+    if ($("resultsModal")) $("resultsModal").style.display = "none";
+    exitScreenOpen = true;
+    if ($("exitScreen")) $("exitScreen").style.display = "flex";
+    try { window.close(); } catch (e) {}
+  });
+}
+
+if ($("exitRestart")) {
+  $("exitRestart").addEventListener("click", () => {
+    localStorage.removeItem("bananaClickerSave");
+    location.reload();
+  });
+}
+
+function getAdDuration() {
+  if(state.adCount === 1) return 15;
+  if(state.adCount === 2) return 30;
+  return 30 + (state.adCount-2)*10;
+}
+
+const ads = [
+  ['🍌','БАНАН ДНЯ','Настолько вкусный, что даже кожура просит добавки.'],
+  ['🍌','БАНАН ДНЯ','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['🍌','БАНАН ДНЯ','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['🍌','БАНАН ДНЯ','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['🍌','БАНАН ДНЯ','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['🍌','БАНАН ДНЯ','Гарантия есть. Где именно — пока уточняем.'],
+  ['🍌','БАНАН ДНЯ','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['🍌','БАНАН ДНЯ','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['🍌','БАНАН ДНЯ','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['🍌','БАНАН ДНЯ','Не является финансовым советом. Является фруктом.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Настолько вкусный, что даже кожура просит добавки.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Гарантия есть. Где именно — пока уточняем.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['🐒','ОБЕЗЬЯНЬЯ ПОДПИСКА','Не является финансовым советом. Является фруктом.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Настолько вкусный, что даже кожура просит добавки.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Гарантия есть. Где именно — пока уточняем.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['🛒','БАНАНОВЫЙ МАРКЕТ','Не является финансовым советом. Является фруктом.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Настолько вкусный, что даже кожура просит добавки.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Гарантия есть. Где именно — пока уточняем.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['🚀','БАНАНЫ УЖЕ В КОСМОСЕ','Не является финансовым советом. Является фруктом.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Настолько вкусный, что даже кожура просит добавки.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Гарантия есть. Где именно — пока уточняем.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['👑','КОРОЛЬ БАНАНОВ','Не является финансовым советом. Является фруктом.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Настолько вкусный, что даже кожура просит добавки.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Гарантия есть. Где именно — пока уточняем.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['🧪','НАУЧНО ДОКАЗАННЫЙ БАНАН','Не является финансовым советом. Является фруктом.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Настолько вкусный, что даже кожура просит добавки.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Гарантия есть. Где именно — пока уточняем.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['📦','СЮРПРИЗ В КОРОБКЕ','Не является финансовым советом. Является фруктом.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Настолько вкусный, что даже кожура просит добавки.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Гарантия есть. Где именно — пока уточняем.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['💼','БАНАНОВЫЙ БИЗНЕС','Не является финансовым советом. Является фруктом.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Настолько вкусный, что даже кожура просит добавки.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Гарантия есть. Где именно — пока уточняем.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['🎓','АКАДЕМИЯ БАНАНОЛОГИИ','Не является финансовым советом. Является фруктом.'],
+  ['⚡','СУПЕР-БАНАН 3000','Настолько вкусный, что даже кожура просит добавки.'],
+  ['⚡','СУПЕР-БАНАН 3000','Купи сейчас. Или не купи. Но банан будет разочарован.'],
+  ['⚡','СУПЕР-БАНАН 3000','Одобрено тремя обезьянами и одним очень строгим попугаем.'],
+  ['⚡','СУПЕР-БАНАН 3000','Всего один банан отделяет тебя от сомнительной славы.'],
+  ['⚡','СУПЕР-БАНАН 3000','Работает без Wi-Fi, но с подозрительно громким хрустом.'],
+  ['⚡','СУПЕР-БАНАН 3000','Гарантия есть. Где именно — пока уточняем.'],
+  ['⚡','СУПЕР-БАНАН 3000','Наш банан на 200% банановее обычного. Не спрашивай как.'],
+  ['⚡','СУПЕР-БАНАН 3000','Скидка  взглядом: просто посмотри на цену и удивись.'],
+  ['⚡','СУПЕР-БАНАН 3000','Покупая это, ты поддерживаешь банановую экономику. Наверное.'],
+  ['⚡','СУПЕР-БАНАН 3000','Не является финансовым советом. Является фруктом.']
+];
+
+function moveAdCloseButton() {
+  const overlay = $("adOverlay");
+  const close = $("adClose");
+  if(!isAdOpen || !overlay || !close) return;
+
+  const margin = 9;
+  const maxLeft = Math.max(margin, overlay.clientWidth - close.offsetWidth - margin);
+  const maxTop = Math.max(margin, overlay.clientHeight - close.offsetHeight - margin);
+
+  close.style.left = (margin + Math.random() * Math.max(0, maxLeft - margin)) + "px";
+  close.style.top = (margin + Math.random() * Math.max(0, maxTop - margin)) + "px";
+}
+
+function showAdvertisement() {
+  if(!state.settings.ads || isAdOpen || !chaosAllowed()) return;
+
+  isAdOpen = true;
+  state.adCount++;
+  adSecondsLeft = getAdDuration();
+
+  const ad = ads[Math.floor(Math.random()*ads.length)];
+
+  $("adEmoji").textContent = ad[0];
+  $("adTitle").textContent = ad[1];
+  $("adDescription").textContent = ad[2];
+  $("adOverlay").classList.add("active");
+
+  update();
+  save();
+  updateAdTimer();
+  moveAdCloseButton();
+
+  clearInterval(adTimer);
+  clearInterval(adXMoveTimer);
+  adXMoveTimer = setInterval(moveAdCloseButton, 1150);
+
+  adTimer = setInterval(()=>{
+    adSecondsLeft--;
+    updateAdTimer();
+    if(adSecondsLeft <= 0) closeAdvertisement();
+  },1000);
+}
+
+function updateAdTimer() {
+  $("adTimer").textContent = adSecondsLeft > 0
+    ? "Закрытие через "+adSecondsLeft+" секунд"
+    : "Теперь можно закрыть!";
+}
+
+function closeAdvertisement() {
+  if(!isAdOpen) return;
+
+  isAdOpen = false;
+  $("adOverlay").classList.remove("active");
+  clearInterval(adTimer);
+  clearInterval(adXMoveTimer);
+  adTimer = null;
+  adXMoveTimer = null;
+  $("clickButton").disabled = false;
+  showNotice("Возвращаемся к бананам...");
+}
+
+$("adClose").addEventListener("click",closeAdvertisement);
+window.addEventListener("resize",()=>{if(isAdOpen) moveAdCloseButton();});
+
+// Esc намеренно не закрывает рекламную заставку.
+// Рекламная заставка ограничена вкладкой сайта.
+
+function randomInterval() {
+  // Гораздо чаще и бесячее + растёт со сложностью
+  const chaos = state.settings.mad ? 100 : state.chaos;
+  if (chaos <= 0) return 60000;
+  const mult = getDifficultyMult();
+  // При высокой сложности события ещё чаще
+  const base = Math.max(900, (14000 - chaos * 110) / mult);
+  return base + Math.random() * (2000 / mult);
+}
+
+function scheduleRandomEvent() {
+  clearTimeout(randomEventTimer);
+
+  const chaos = state.settings.mad ? 100 : state.chaos;
+  const delay = randomInterval();
+
+  randomEventTimer = setTimeout(()=>{
+    if(chaos > 0 && chaosAllowed() && !isAdOpen && !document.getElementById("screamerOverlay")?.classList.contains("active")) {
+      runRandomEvent();
+    }
+    scheduleRandomEvent();
+  }, delay);
+}
+
+function runRandomEvent() {
+  if (!chaosAllowed()) return;
+  const chaos = state.settings.mad ? 100 : state.chaos;
+  if(chaos <= 0) return;
+
+  const events = [];
+
+  if(state.settings.invert) {
+    events.push(invertInterface);
+    events.push(moveBanana);
+    events.push(dodgeBanana); // прыгает и уворачивается
+  }
+
+  if(state.settings.visual) {
+    events.push(visualEffect);
+    events.push(shakeEffect);
+    events.push(resizeBanana);
+    events.push(dodgeBanana);
+    events.push(shakeEffect);
+  }
+
+  if(state.settings.lag) {
+    events.push(fakeError);
+  }
+
+  // Скример из случайных событий — редко (основной таймер каждые 30 сек)
+  if (Math.random() < 0.04) {
+    triggerScreamer();
+    return;
+  }
+
+  // Банкротство — редко, но больно
+  if (Math.random() < (0.03 + chaos / 2000) * getDifficultyMult()) {
+    triggerBankruptcy();
+    return;
+  }
+
+  // Реклама из случайных событий — редко (основной таймер уже каждые 10–15 сек)
+  if(state.settings.ads && Math.random() < 0.08) {
+    showAdvertisement();
+    return;
+  }
+
+  if(events.length) {
+    const e1 = events[Math.floor(Math.random()*events.length)];
+    e1();
+    if (Math.random() < 0.4) {
+      setTimeout(() => {
+        const e2 = events[Math.floor(Math.random()*events.length)];
+        e2();
+      }, 300 + Math.random() * 700);
+    }
+  }
+}
+
+// ===== СКРИМЕР =====
+const screamerFaces = ["💀", "☠️", "👹", "👺", "👻", "🩸", "😱", "👿", "🍌💀", "👁️"];
+const screamerTexts = ["ОН УЖЕ ЗДЕСЬ","БАНАН СМОТРИТ НА ТЕБЯ","ТЫ НЕ УЙДЁШЬ","Я ЗА ТОБОЙ","НЕ ДВИГАЙСЯ","СЛИШКОМ ПОЗДНО"];
+const screamerSubs = ["НЕ ОТВОРАЧИВАЙСЯ","ОН ЗНАЕТ ГДЕ ТЫ","КЛИКАЙ... ЕСЛИ СМЕЕШЬ","БАНАН ГОЛОДЕН","ТЫ СЛЕДУЮЩИЙ"];
+
+let screamerAudio = null;
+
+function playScreamerSound() {
+  try {
+    if (!screamerAudio) {
+      screamerAudio = new Audio("data:audio/mpeg;base64,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qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+5JkQI/wAABpAAAACAAADSAAAAEAAAGkAAAAIAAANIAAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//uSZECP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7kmRAj/AAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+5JkQI/wAABpAAAACAAADSAAAAEAAAGkAAAAIAAANIAAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//uSZECP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7kmRAj/AAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+5JkQI/wAABpAAAACAAADSAAAAEAAAGkAAAAIAAANIAAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//uSZECP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7kmRAj/AAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+5JkQI/wAABpAAAACAAADSAAAAEAAAGkAAAAIAAANIAAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//uSZECP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7kmRAj/AAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+5JkQI/wAABpAAAACAAADSAAAAEAAAGkAAAAIAAANIAAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//uQZEEP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//uSZECP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7kmRAj/AAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=");
+      screamerAudio.volume = 1.0;
+    }
+    screamerAudio.currentTime = 0;
+    const p = screamerAudio.play();
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+}
+
+function triggerScreamer(force = false) {
+  if (screamerActive || isAdOpen) return;
+  if (!force && !chaosAllowed()) return;
+  screamerActive = true;
+
+  const overlay = $("screamerOverlay");
+  const face = $("screamerFace");
+  const textEl = $("screamerText");
+  const subEl = $("screamerSub");
+
+  face.textContent = screamerFaces[Math.floor(Math.random() * screamerFaces.length)];
+  if (textEl) textEl.textContent = screamerTexts[Math.floor(Math.random() * screamerTexts.length)];
+  if (subEl) subEl.textContent = screamerSubs[Math.floor(Math.random() * screamerSubs.length)];
+
+  overlay.classList.add("active");
+  document.body.classList.add("screamer-shake");
+  playScreamerSound();
+
+  const duration = 2200;
+  clearTimeout(screamerTimeout);
+  screamerTimeout = setTimeout(() => {
+    overlay.classList.remove("active");
+    document.body.classList.remove("screamer-shake");
+    screamerActive = false;
+    showNotice("💀 ...ты ещё здесь?");
+  }, duration);
+}
+
+function cancelScreamer() {
+  if (!screamerActive) return;
+  clearTimeout(screamerTimeout);
+  $("screamerOverlay").classList.remove("active");
+  document.body.classList.remove("screamer-shake");
+  screamerActive = false;
+}
+
+function invertInterface() {
+  if(shuffled) return;
+  shuffled = true;
+
+  const nav = $("navigation");
+  const buttons = [...nav.children];
+
+  buttons.sort(()=>Math.random()-.5);
+  buttons.forEach(b=>nav.appendChild(b));
+
+  showNotice("🔄 Интерфейс решил немного измениться. Удачи.");
+
+  setTimeout(()=>{
+    buttons.sort((a,b)=>{
+      const order = ["clicker","upgrades","statistics","settings","achievements"];
+      return order.indexOf(a.dataset.page)-order.indexOf(b.dataset.page);
+    });
+    buttons.forEach(b=>nav.appendChild(b));
+    shuffled = false;
+  }, 7000 + Math.random() * 8000);
+}
+
+function moveBanana() {
+  const banana = $("banana");
+  const skin = banana.dataset.skin || "normal";
+  const simpleSkin = ["normal","ripe","big"].includes(skin);
+  const oldText = banana.textContent;
+
+  if (simpleSkin) {
+    banana.textContent = "🍌";
+  }
+  banana.classList.add("wobble");
+
+  showNotice("🍌 Банан меняет своё местоположение...");
+
+  setTimeout(()=>{
+    banana.classList.remove("wobble");
+    if (simpleSkin) banana.textContent = oldText;
+    updateBananaSkin(getDifficultyLevel(), true);
+  },4000);
+}
+
+// Банан прыгает и уворачивается — почти невозможно кликнуть
+function dodgeBanana() {
+  const banana = $("banana");
+  if (banana.classList.contains("fleeing") || banana.classList.contains("dodging")) return;
+
+  banana.classList.add("fleeing");
+  showNotice("🍌 Банан начал уворачиваться! Попробуй поймать...");
+
+  // Во время уворачивания клики часто промахиваются
+  const originalClick = banana.onclick;
+  let missCount = 0;
+
+  const duration = 4500 + Math.random() * 3500;
+
+  // Периодически телепортируем банан в случайную сторону
+  const jumpInterval = setInterval(() => {
+    if (!banana.classList.contains("fleeing")) {
+      clearInterval(jumpInterval);
+      return;
+    }
+    const x = (Math.random() - 0.5) * 180;
+    const y = (Math.random() - 0.5) * 120;
+    const rot = (Math.random() - 0.5) * 50;
+    banana.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) scale(${0.7 + Math.random() * 0.5})`;
+  }, 280);
+
+  setTimeout(() => {
+    clearInterval(jumpInterval);
+    banana.classList.remove("fleeing");
+    banana.style.transform = "";
+    updateBananaSkin(getDifficultyLevel(), true);
+    showNotice("🍌 Банан устал уворачиваться... пока что.");
+  }, duration);
+}
+
+// Банкротство — редко, но очень больно
+function triggerBankruptcy() {
+  if (state.score < 50) return; // не банкротим совсем нищих
+
+  const lossPercent = 0.25 + Math.random() * 0.45; // теряем 25–70%
+  const lost = Math.floor(state.score * lossPercent);
+  state.score = Math.max(0, state.score - lost);
+
+  // Иногда ещё и часть пассивного дохода страдает
+  if (Math.random() < 0.35 && state.upgrades[1] > 0) {
+    state.upgrades[1] = Math.max(0, state.upgrades[1] - 1);
+    recalculate();
+    showNotice(`💸 БАНКРОТСТВО! Потеряно ${lost.toLocaleString("ru")} 🍌 и 1 обезьяна`);
+  } else {
+    showNotice(`💸 БАНКРОТСТВО! Банан-кредитор забрал ${lost.toLocaleString("ru")} 🍌`);
+  }
+
+  // Визуально
+  document.body.classList.add("flash");
+  setTimeout(() => document.body.classList.remove("flash"), 500);
+  shakeEffect();
+
+  update(true);
+  save();
+}
+
+function visualEffect() {
+  document.body.classList.add("flash");
+  setTimeout(()=>document.body.classList.remove("flash"), 280 + Math.random()*300);
+  // Иногда двойная вспышка
+  if (Math.random() < 0.4) {
+    setTimeout(() => {
+      document.body.classList.add("flash");
+      setTimeout(()=>document.body.classList.remove("flash"), 200);
+    }, 350);
+  }
+}
+
+function shakeEffect() {
+  document.body.classList.add("shaking");
+  const duration = 900 + Math.random() * 1100;
+  setTimeout(()=>document.body.classList.remove("shaking"), duration);
+}
+
+function resizeBanana() {
+  const banana = $("banana");
+  // Более агрессивные размеры
+  banana.style.fontSize = (40 + Math.random()*220) + "px";
+  setTimeout(()=>{
+    const skin = getBananaSkin(getDifficultyLevel());
+    banana.style.fontSize = skin.size;
+  }, 2500 + Math.random()*3000);
+}
+
+function fakeError() {
+  if(document.querySelector(".fake-error")) return;
+
+  const messages = [
+    "БАНАН НЕ ОТВЕЧАЕТ",
+    "СЛИШКОМ МНОГО БАНАНОВ",
+    "КРИТИЧЕСКАЯ ОШИБКА БАНАНА",
+    "СИСТЕМА ПЕРЕГРУЖЕНА БАНАНАМИ",
+    "БАНАН ЗАХВАТИЛ ПРОЦЕССОР"
+  ];
+  const texts = [
+    "Приложение обнаружило подозрительно большое количество бананов.",
+    "Попытка закрыть это окно только усугубит ситуацию.",
+    "Рекомендуется немедленно прекратить клики.",
+    "Банан требует вашего внимания. Сейчас же.",
+    "Ошибка необратима. Или нет. Кто знает."
+  ];
+
+  const box = document.createElement("div");
+  box.className = "fake-error";
+
+  box.innerHTML = `
+    <h3>⚠️ ${messages[Math.floor(Math.random()*messages.length)]}</h3>
+    <p>${texts[Math.floor(Math.random()*texts.length)]}</p>
+    <p style="color:#999;font-size:12px">Код ошибки: BANANA_${Math.floor(Math.random()*99999)}</p>
+    <button class="action">Понятно</button>
+  `;
+
+  box.querySelector("button").addEventListener("click",()=>box.remove());
+  document.body.appendChild(box);
+
+  // Дольше висит
+  setTimeout(()=>box.remove(), 6000 + Math.random()*6000);
+}
+
+function updateSettings() {
+  state.chaos = Number($("chaosSlider").value);
+  state.settings.ads = $("adsToggle").checked;
+  state.settings.invert = $("invertToggle").checked;
+  state.settings.lag = $("lagToggle").checked;
+  state.settings.visual = $("visualToggle").checked;
+  state.settings.mad = $("madToggle").checked;
+
+  update();
+  save();
+}
+
+[
+  "chaosSlider",
+  "adsToggle",
+  "invertToggle",
+  "lagToggle",
+  "visualToggle",
+  "madToggle"
+].forEach(id=>{
+  $(id).addEventListener("input",updateSettings);
+  $(id).addEventListener("change",updateSettings);
+});
+
+$("resetButton").addEventListener("click",()=>{
+  if(!confirm("Точно удалить весь прогресс?")) return;
+
+  localStorage.removeItem("bananaClickerSave");
+  location.reload();
+});
+
+// Пассивный доход (не работает на паузе меню/результатов)
+setInterval(()=>{
+  if (isPaused()) return;
+  if(state.perSecond > 0) {
+    earn(state.perSecond/10);
+  }
+},100);
+
+// Время в игре + сохранение раз в секунду
+setInterval(() => {
+  if (isPaused()) {
+    refreshProgressUI();
+    return;
+  }
+
+  if (!state.won) state.playSeconds++;
+  checkVictory();
+  checkResults();
+  refreshProgressUI();
+  updatePsycheUI();
+  save();
+}, 1000);
+
+// Периодические случайные события
+scheduleRandomEvent();
+
+// Отдельная проверка рекламы
+function scheduleAdvertisement() {
+  clearTimeout(eventTimer);
+
+  // В grace / после победы / если выключено — просто ждём и проверяем снова
+  if (!state.settings.ads || !chaosAllowed()) {
+    eventTimer = setTimeout(scheduleAdvertisement, 3000);
+    return;
+  }
+
+  const mult = getDifficultyMult();
+  const delay = Math.max(8000, 16000 / (0.75 + mult * 0.3));
+
+  eventTimer = setTimeout(()=>{
+    if(!isAdOpen && !screamerActive && state.settings.ads && chaosAllowed()) {
+      showAdvertisement();
+    }
+    scheduleAdvertisement();
+  }, delay);
+}
+
+let screamerTimer = null;
+function scheduleScreamer() {
+  clearTimeout(screamerTimer);
+
+  if (!chaosAllowed()) {
+    screamerTimer = setTimeout(scheduleScreamer, 4000);
+    return;
+  }
+
+  const mult = getDifficultyMult();
+  const delay = Math.max(14000, 32000 / (0.75 + mult * 0.35));
+  screamerTimer = setTimeout(() => {
+    if (!isAdOpen && !screamerActive && chaosAllowed()) {
+      triggerScreamer();
+    }
+    scheduleScreamer();
+  }, delay);
+}
+
+$("adsToggle").addEventListener("change",scheduleAdvertisement);
+$("chaosSlider").addEventListener("input",scheduleAdvertisement);
+$("madToggle").addEventListener("change",scheduleAdvertisement);
+
+// Админ-кнопки (после победы)
+if ($("adminChaosOff")) {
+  $("adminChaosOff").addEventListener("click", () => {
+    state.adminChaosOff = true;
+    state.settings.ads = false;
+    state.settings.lag = false;
+    state.settings.invert = false;
+    state.settings.visual = false;
+    state.settings.mad = false;
+    save();
+    update(true);
+  });
+}
+if ($("adminMoney")) {
+  $("adminMoney").addEventListener("click", () => {
+    state.score += 1000000;
+    state.totalEarned += 1000000;
+    update(true);
+    save();
+  });
+}
+if ($("adminScreamer")) {
+  $("adminScreamer").addEventListener("click", () => triggerScreamer(true));
+}
+if ($("adminAd")) {
+  $("adminAd").addEventListener("click", () => {
+    const prev = state.settings.ads;
+    const prevAdmin = state.adminChaosOff;
+    state.settings.ads = true;
+    state.adminChaosOff = false;
+    // временно разрешаем
+    isAdOpen = false;
+    const oldAllowed = chaosAllowed;
+    // прямой вызов рекламы
+    state.adminChaosOff = false;
+    showAdvertisementForced();
+    state.settings.ads = prev;
+    state.adminChaosOff = prevAdmin;
+  });
+}
+
+function showAdvertisementForced() {
+  if (isAdOpen) return;
+  isAdOpen = true;
+  state.adCount++;
+  adSecondsLeft = getAdDuration();
+  const ad = ads[Math.floor(Math.random()*ads.length)];
+  $("adEmoji").textContent = ad[0];
+  $("adTitle").textContent = ad[1];
+  $("adDescription").textContent = ad[2];
+  $("adOverlay").classList.add("active");
+  updateAdTimer();
+  moveAdCloseButton();
+  clearInterval(adTimer);
+  clearInterval(adXMoveTimer);
+  adXMoveTimer = setInterval(moveAdCloseButton, 1150);
+  adTimer = setInterval(()=>{
+    adSecondsLeft--;
+    updateAdTimer();
+    if(adSecondsLeft <= 0) closeAdvertisement();
+  },1000);
+  save();
+}
+
+// Инициализация
+recalculate();
+renderUpgrades();
+renderAchievements();
+update(true);
+refreshProgressUI();
+initStartMenu();
+updatePsycheUI();
+
+// Таймеры запустятся полноценно после кнопки «НАЧАТЬ ТЕСТ»,
+// а пока меню открыто — они просто ждут.
+scheduleAdvertisement();
+scheduleScreamer();
+</script>
+</body>
+</html>
